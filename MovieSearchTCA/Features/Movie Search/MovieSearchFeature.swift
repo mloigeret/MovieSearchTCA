@@ -24,7 +24,7 @@ struct MovieSearchFeature: Reducer {
     
     // MARK: Properties
     
-    var movieService: MockMovieService
+    let tmdbService: TMDBServiceProtocol = TMDBService.make()
     
     // MARK: Reduce
     
@@ -37,7 +37,7 @@ struct MovieSearchFeature: Reducer {
         case let .searchQueryChanged(searchQuery):
             state.searchQuery = searchQuery
             return .run { send in
-                let result = await movieService.searchMovies(query: searchQuery)
+                let result = await tmdbService.searchMovies(query: searchQuery)
                 await send(.moviesLoaded(result))
             }
   

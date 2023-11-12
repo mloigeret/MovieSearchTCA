@@ -40,9 +40,7 @@ struct MovieSearchView: View {
         store: Store(
             initialState: MovieSearchFeature.State(),
             reducer: {
-                MovieSearchFeature(
-                    movieService: MockMovieService()
-                )
+                MovieSearchFeature()
             }
         )
     )

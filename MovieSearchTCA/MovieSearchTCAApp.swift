@@ -14,7 +14,7 @@ struct MoviesApp: App {
     let store = Store(
         initialState: MovieSearchFeature.State(),
         reducer: {
-            MovieSearchFeature(movieService: MockMovieService())
+            MovieSearchFeature()
         }
     )
 
