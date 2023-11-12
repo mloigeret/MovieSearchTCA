@@ -8,7 +8,7 @@
 import Foundation
 
 protocol TMDBServiceProtocol {
-    func searchMovies(query: String) async -> Result<[Movie], Error>
+    func searchMovies(query: String) async -> Result<[Movie], APIError>
     static func make() -> TMDBServiceProtocol
 }
 
@@ -25,13 +25,26 @@ class TMDBService: TMDBServiceProtocol {
         return TMDBService(apiService: APIService.make())
     }
 
-    func searchMovies(query: String) async -> Result<[Movie], Error> {
+    func searchMovies(query: String) async -> Result<[Movie], APIError> {
         guard let url = URL(string: "\(baseUrl)/search/movie?api_key=\(apiKey)&query=\(query)") else {
-            return .failure(NSError(domain: "InvalidURL", code: 0))
+            return .failure(
+                APIError(
+                    underlyingError:
+                        NSError(
+                            domain: "InvalidURL",
+                            code: 0
+                        )
+                )
+            )
         }
 
-        let result: Result<TMDBSearchMoviesResponse, Error> = await apiService.request(url: url, expecting: TMDBSearchMoviesResponse.self)
+        let result: Result<TMDBSearchMoviesResponse, APIError> = await apiService.request(
+            url: url,
+            expecting: TMDBSearchMoviesResponse.self
+        )
+        
         switch result {
+            
         case .success(let response):
             return .success(response.results)
         case .failure(let error):

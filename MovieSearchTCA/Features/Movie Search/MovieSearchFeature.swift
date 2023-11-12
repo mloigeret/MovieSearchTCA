@@ -9,47 +9,55 @@ import ComposableArchitecture
 import Foundation
 
 struct MovieSearchFeature: Reducer {
-
+    
     // MARK: Definitions
     
     struct State: Equatable {
         var searchQuery: String = ""
         var movies: [Movie] = []
+        var isLoading: Bool = false
+        var error: APIError?
     }
     
     enum Action {
         case searchQueryChanged(String)
-        case moviesLoaded(Result<[Movie], Error>)
+        case moviesLoaded(Result<[Movie], APIError>)
     }
     
     // MARK: Properties
     
     let tmdbService: TMDBServiceProtocol = TMDBService.make()
-    
+
     // MARK: Reduce
     
     func reduce(
         into state: inout State,
         action: Action
-    ) -> ComposableArchitecture.Effect<Action> {
+    ) -> Effect<Action> {
         switch action {
-            
-        case let .searchQueryChanged(searchQuery):
-            state.searchQuery = searchQuery
-            return .run { send in
-                let result = await tmdbService.searchMovies(query: searchQuery)
-                await send(.moviesLoaded(result))
+        case let .searchQueryChanged(query):
+            state.searchQuery = query
+            if !query.isEmpty {
+                state.isLoading = true
+                return .run { send in
+                    let result = await tmdbService.searchMovies(query: query)
+                    await send(.moviesLoaded(result))
+                }
+            } else {
+                state.isLoading = false
+                state.movies = []
+                return .none
             }
-  
+            
         case let .moviesLoaded(.success(movies)):
+            state.isLoading = false
             state.movies = movies
             return .none
-            
+
         case let .moviesLoaded(.failure(error)):
-            // TODO: handle error case
-            print("Oh no! \(error.localizedDescription)")
+            state.isLoading = false
+            state.error = error
             return .none
         }
     }
 }
-
