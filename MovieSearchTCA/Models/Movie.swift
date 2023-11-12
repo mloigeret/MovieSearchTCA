@@ -22,6 +22,11 @@ struct Movie {
     let video: Bool
     let voteAverage: Double
     let voteCount: Int
+    
+    var posterURL: URL? {
+        guard let posterPath else { return nil }
+        return URL(string: "https://image.tmdb.org/t/p/w185\(posterPath)")
+    }
 }
 
 extension Movie: Decodable {

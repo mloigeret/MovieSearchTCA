@@ -46,9 +46,32 @@ struct MovieSearchView: View {
                 } else if !viewStore.movies.isEmpty {
                     
                     List(viewStore.movies, id: \.id) { movie in
-                        VStack(alignment: .leading) {
-                            Text(movie.title).bold()
-                            Text(movie.releaseDate).italic()
+                        HStack {
+                            Group {
+                                if let posterURL = movie.posterURL {
+                                    AsyncImage(url: posterURL) { phase in
+                                        switch phase {
+                                        case .success(let image):
+                                            image.resizable()
+                                                 .aspectRatio(contentMode: .fit)
+                                        case .failure:
+                                            Image(systemName: "questionmark")
+                                        case .empty:
+                                            ProgressView()
+                                        @unknown default:
+                                            EmptyView()
+                                        }
+                                    }
+                                } else {
+                                    Image(systemName: "questionmark")
+                                }
+                            }
+                            .frame(width: 50, height: 100)
+
+                            VStack(alignment: .leading) {
+                                Text(movie.title).bold()
+                                Text(movie.releaseDate).italic()
+                            }
                         }
                     }
 
