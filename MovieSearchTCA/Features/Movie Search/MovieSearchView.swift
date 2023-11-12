@@ -90,6 +90,12 @@ struct MovieSearchView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
+            .task(id: viewStore.searchQuery) {
+                do {
+                    try await Task.sleep(nanoseconds: UInt64(0.5 * Double(NSEC_PER_SEC)))
+                    await viewStore.send(.debouncedSearchQueryChanged).finish()
+                } catch {}
+            }
         }
     }
 }

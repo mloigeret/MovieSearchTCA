@@ -21,6 +21,7 @@ struct MovieSearchFeature: Reducer {
     
     enum Action {
         case searchQueryChanged(String)
+        case debouncedSearchQueryChanged
         case moviesLoaded(Result<[Movie], APIError>)
     }
     
@@ -35,19 +36,19 @@ struct MovieSearchFeature: Reducer {
         action: Action
     ) -> Effect<Action> {
         switch action {
+            
         case let .searchQueryChanged(query):
             state.searchQuery = query
-            if !query.isEmpty {
-                state.isLoading = true
-                return .run { send in
-                    let result = await tmdbService.searchMovies(query: query)
-                    await send(.moviesLoaded(result))
-                }
-            } else {
-                state.isLoading = false
-                state.movies = []
-                return .none
+            return .none
+
+        case .debouncedSearchQueryChanged:
+            guard !state.searchQuery.isEmpty else { return .none }
+            state.isLoading = true
+            return Effect.run { [query = state.searchQuery] send in
+                let result = await tmdbService.searchMovies(query: query)
+                await send(.moviesLoaded(result))
             }
+            .cancellable(id: CancelID.search)
             
         case let .moviesLoaded(.success(movies)):
             state.isLoading = false
@@ -60,4 +61,8 @@ struct MovieSearchFeature: Reducer {
             return .none
         }
     }
+}
+
+fileprivate enum CancelID: Hashable {
+    case search
 }
