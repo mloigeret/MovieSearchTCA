@@ -17,18 +17,22 @@ struct MovieSearchFeature: Reducer {
         var movies: [Movie] = []
         var isLoading: Bool = false
         var error: APIError?
+        
+        var movieDetail: MovieDetailFeature.State?
     }
     
     enum Action {
         case searchQueryChanged(String)
         case debouncedSearchQueryChanged
         case moviesLoaded(Result<[Movie], APIError>)
+        case movieTapped(Movie)
+        case movieDetail(MovieDetailFeature.Action)
     }
     
     // MARK: Properties
     
     let tmdbService: TMDBServiceProtocol = TMDBService.make()
-
+    
     // MARK: Reduce
     
     func reduce(
@@ -40,7 +44,7 @@ struct MovieSearchFeature: Reducer {
         case let .searchQueryChanged(query):
             state.searchQuery = query
             return .none
-
+            
         case .debouncedSearchQueryChanged:
             guard !state.searchQuery.isEmpty else { return .none }
             state.isLoading = true
@@ -54,10 +58,18 @@ struct MovieSearchFeature: Reducer {
             state.isLoading = false
             state.movies = movies
             return .none
-
+            
         case let .moviesLoaded(.failure(error)):
             state.isLoading = false
             state.error = error
+            return .none
+            
+        case let .movieTapped(movie):
+            state.movieDetail = MovieDetailFeature.State(movie: movie)
+            return .none
+            
+        case .movieDetail(.dismiss):
+            state.movieDetail = nil
             return .none
         }
     }
